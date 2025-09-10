@@ -1,4 +1,4 @@
-# 📝 Todo App - Demonstração Completa React + JavaScript
+# 📝 To-Do App - Demonstração Completa React + JavaScript
 
 Um aplicativo de lista de tarefas (To-Do) desenvolvido em **React + JavaScript + Tailwind CSS** que demonstra todos os principais conceitos do desenvolvimento front-end moderno de forma prática e educacional.
 
@@ -10,8 +10,9 @@ Um aplicativo de lista de tarefas (To-Do) desenvolvido em **React + JavaScript +
 
 ### Instalação e Execução
 ```bash
-# 1. Clone o repositório (se aplicável) ou navegue até a pasta
-cd todo-app
+# 1. Clone o repositório
+git clone https://github.com/junin27/Atividade-Avaliativa-3-0---Desenvolvimento-Web.git
+cd Atividade-Avaliativa-3-0---Desenvolvimento-Web
 
 # 2. Instale as dependências
 npm install
@@ -350,7 +351,12 @@ src/
 │   └── routes.jsx              # Configuração de rotas da aplicação
 ├── components/                 # Componentes reutilizáveis SEM ESTADO
 │   ├── Button.jsx             # Botão reutilizável com variantes
-│   ├── Header.jsx             # Cabeçalho com navegação
+│   ├── Card.jsx               # Card/Container estilizado
+│   ├── Input.jsx              # Campo de entrada com validação
+│   ├── Label.jsx              # Label acessível para formulários
+│   ├── Badge.jsx              # Badge/Tag para status
+│   ├── Icons.jsx              # Sistema completo de ícones SVG
+│   ├── Header.jsx             # Cabeçalho com navegação e dark mode
 │   └── EmptyState.jsx         # Estado vazio para listas
 ├── context/                   # Contextos React
 │   └── AuthContext.jsx        # Contexto de autenticação (useContext)
@@ -364,10 +370,16 @@ src/
 │       ├── TaskForm.jsx       # Formulário de tarefa (COM ESTADO)
 │       ├── TaskItem.jsx       # Item de tarefa (HÍBRIDO)
 │       └── taskUtils.js       # Funções utilitárias (testadas)
+├── hooks/                     # Custom hooks
+│   └── useAuth.js            # Hook personalizado para autenticação
 ├── styles/
-│   └── index.css             # Estilos Tailwind + customizações
+│   └── index.css             # Design System CSS + Tailwind customizado
 ├── App.jsx                   # Componente raiz SEM ESTADO
 └── main.jsx                  # Ponto de entrada da aplicação
+
+public/
+├── todo-icon.svg             # Ícone personalizado da aplicação
+└── vite.svg                  # Ícone padrão do Vite
 
 tests/
 └── taskUtils.test.js         # Testes unitários com Vitest
@@ -379,20 +391,120 @@ Arquivos de configuração:
 ├── tailwind.config.js       # Configuração do Tailwind
 ├── postcss.config.js        # Configuração do PostCSS
 ├── .prettierrc              # Configuração do Prettier
+├── index.html               # HTML principal (título: "To-Do App")
 └── README.md                # Este arquivo
 ```
 
 ### **Descrição dos Diretórios:**
 
 - **`/app`**: Configurações centrais da aplicação (rotas, providers)
-- **`/components`**: Componentes UI reutilizáveis e sem estado
+- **`/components`**: Componentes UI reutilizáveis e sem estado, incluindo sistema completo de ícones SVG
 - **`/context`**: Contextos React para compartilhamento de estado global
 - **`/features`**: Funcionalidades organizadas por domínio de negócio
+- **`/hooks`**: Custom hooks reutilizáveis (useAuth)
 - **`/tests`**: Testes unitários e de integração
+- **`/public`**: Arquivos estáticos incluindo ícone personalizado da aplicação
+
+## 🎨 Sistema de Design Implementado
+
+### **Ícones SVG Personalizados**
+Criamos um sistema completo de ícones em `components/Icons.jsx`:
+
+```javascript
+// Sistema de ícones SVG com PropTypes
+export const TodoIcon = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+          d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+  </svg>
+);
+
+// Outros ícones: SearchIcon, NewTaskIcon, EditIcon, DeleteIcon, 
+// SaveIcon, CancelIcon, LogoutIcon, CheckIcon, CreateTaskIcon, EmptyStateIcon
+```
+
+**Características dos ícones:**
+- **11 ícones SVG** personalizados e consistentes
+- **PropTypes validation** para type safety
+- **Responsive sizing** com classes Tailwind
+- **Acessibilidade** com aria-labels appropriados
+- **Substituição completa de emojis** por ícones profissionais
+
+### **Header Estilizado**
+Header com design moderno e funcional:
+
+```javascript
+// Header com ícone personalizado e texto branco
+<Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
+  <TodoIcon className="w-7 h-7 text-white" />
+  <h1 className="text-xl font-bold text-white">
+    To Do App
+  </h1>
+</Link>
+```
+
+**Características do header:**
+- **Background gradient**: gradiente escuro profissional
+- **Texto branco**: alta legibilidade em fundo escuro
+- **Ícone personalizado**: TodoIcon em vez de emoji
+- **Dark mode toggle**: funcional com ícones do Heroicons
+- **Navegação contextual**: diferente para usuários autenticados/não autenticados
+
+### **Design System CSS Customizado**
+Sistema completo de design em `index.css`:
+
+```css
+/* Design System com CSS Variables */
+:root {
+  --color-primary: 34 99 235;        /* blue-600 */
+  --color-surface: 248 250 252;      /* slate-50 */
+  --color-text: 15 23 42;            /* slate-900 */
+  --radius-xl: 20px;
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Header estilizado */
+.header {
+  background: linear-gradient(135deg, rgb(30 41 59), rgb(51 65 85));
+  border-bottom: 1px solid rgb(71 85 105);
+  box-shadow: var(--shadow);
+}
+
+/* Campo de busca com ícone */
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  pointer-events: none;
+}
+```
 
 ---
 
 ## 🛠️ Decisões Técnicas
+
+### **Sistema de Ícones SVG vs Emojis**
+- **Antes**: Emojis (🗑️, ✏️, ➕) inconsistentes entre sistemas
+- **Depois**: SVG icons customizados com design unificado
+- **Benefícios**: Consistência visual, melhor acessibilidade, fácil manutenção
+
+### **Design System Próprio vs Biblioteca Externa**
+- **Escolha**: CSS customizado com variables + Tailwind utilities
+- **Vantagens**: Controle total, performance otimizada, aprendizado completo
+- **Resultado**: Sistema escalável e maintível
+
+### **Título e Favicon Personalizados**
+- **Título**: "To-Do App" (antes: "Vite + React")
+- **Favicon**: Ícone SVG personalizado (antes: ícone do Vite)
+- **Impacto**: Identidade visual profissional e reconhecível
 
 ### **Por que Vite?**
 - **Performance**: build e hot reload ultra-rápidos
@@ -400,17 +512,42 @@ Arquivos de configuração:
 - **ES Modules**: suporte nativo sem bundling em desenvolvimento
 - **Ecosistema**: excelente integração com React e Tailwind
 
-### **Por que Tailwind CSS?**
+### **Por que Tailwind CSS + CSS Customizado?**
 - **Utility-first**: desenvolvimento rápido com classes utilitárias
-- **Consistência**: design system integrado
+- **Consistência**: design system integrado com CSS variables
 - **Performance**: apenas CSS usado é incluído no build
-- **Responsividade**: modificadores nativos para diferentes telas
+- **Flexibilidade**: CSS customizado para componentes complexos (header, search)
 
 ### **Por que Context API em vez de Redux?**
 - **Simplicidade**: menos boilerplate para aplicação pequena/média
 - **Nativo**: parte do React, sem dependências externas
 - **Suficiente**: atende necessidades de compartilhamento de estado
 - **Didático**: demonstra conceitos fundamentais do React
+
+### **Campo de Busca Estilizado**
+Implementação de busca com ícone integrado:
+
+```javascript
+// TasksPage.jsx - Campo de busca estilizado
+<div className="search-input-container">
+  <SearchIcon className="search-icon w-5 h-5 text-muted-foreground" />
+  <input
+    ref={searchInputRef}
+    type="text"
+    placeholder="Buscar tarefas..."
+    value={searchTerm}
+    onChange={handleSearchChange}
+    className="input w-full sm:w-64"
+    style={{ paddingLeft: '2.5rem', paddingRight: searchTerm ? '2.5rem' : '1rem' }}
+    aria-label="Buscar tarefas"
+  />
+  {searchTerm && (
+    <button onClick={handleClearSearch} className="search-clear-button">
+      <CancelIcon className="w-4 h-4" />
+    </button>
+  )}
+</div>
+```
 
 ### **Limitações da Autenticação Fake:**
 - **localStorage**: dados perdidos ao limpar navegador
@@ -439,8 +576,13 @@ Arquivos de configuração:
 // Estados dinâmicos
 <div role="status" aria-live="polite">Carregando...</div>
 
-// Botões descritivos
-<button aria-label="Excluir tarefa">🗑️</button>
+// Botões com ícones descritivos
+<Button aria-label="Editar tarefa">
+  <EditIcon className="w-4 h-4" />
+</Button>
+<Button aria-label="Excluir tarefa">
+  <DeleteIcon className="w-4 h-4" />
+</Button>
 ```
 
 ### **Foco e Navegação:**
@@ -554,8 +696,10 @@ describe('filterTasks', () => {
 
 ### **Performance:**
 - **Memoização**: `useMemo` para cálculos custosos
-- **Referências estáveis**: `useRef` para DOM
+- **Referências estáveis**: `useRef` para DOM e foco automático
 - **Keys otimizadas**: IDs únicos para listas
+- **SVG optimization**: ícones vetoriais leves e escaláveis
+- **CSS variables**: reutilização eficiente de estilos
 - **Bundle splitting**: imports dinâmicos (pode ser expandido)
 
 ### **Estado e Side Effects:**
@@ -601,9 +745,23 @@ Este projeto demonstra de forma prática e completa os principais conceitos do d
 ✅ **Formulários** controlados com validação  
 ✅ **Navegação autenticada** com rotas protegidas  
 ✅ **5 Hooks obrigatórios** com casos de uso práticos  
+✅ **Sistema de ícones SVG** profissional e acessível  
+✅ **Design System** completo com CSS customizado  
+✅ **Campo de busca estilizado** com UX profissional  
+✅ **Header responsivo** com dark mode funcional  
+✅ **Favicon e título** personalizados para identidade visual  
 
-O código está organizado, comentado e pronto para defesa oral, servindo como referência completa para os conceitos fundamentais do React e desenvolvimento web moderno.
+### **Diferenciais Implementados:**
+- 🎨 **Sistema de design próprio** com CSS variables e Tailwind
+- 📱 **11 ícones SVG** customizados substituindo emojis
+- 🔍 **Busca avançada** com ícone integrado e clear button
+- 🌓 **Dark mode** funcional com persistência
+- ♿ **Acessibilidade** completa com ARIA labels e navegação por teclado
+- 🏷️ **PropTypes validation** em todos os componentes de ícones
+
+O código está organizado, comentado, testado e pronto para defesa oral, servindo como referência completa para os conceitos fundamentais do React e desenvolvimento web moderno com foco em UX/UI profissional.
 
 ---
 
-**Desenvolvido para fins educacionais - Todo App 2024**
+**Desenvolvido para fins educacionais - To-Do App 2024**  
+**Repositório:** https://github.com/junin27/Atividade-Avaliativa-3-0---Desenvolvimento-Web
