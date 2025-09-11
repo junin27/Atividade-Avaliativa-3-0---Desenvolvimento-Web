@@ -50,10 +50,22 @@ Este projeto foi desenvolvido especificamente para demonstrar os seguintes conce
 - **Build**: empacotamento e otimização para produção
 
 **Onde vemos Node em ação:**
-- `package.json`: definição de dependências e scripts
+- [`package.json`](./package.json): definição de dependências e scripts
 - `npm install`: instalação de pacotes
 - `npm run dev`: execução do servidor de desenvolvimento
 - Build tools: Vite, PostCSS, Tailwind CSS
+
+**Exemplo prático no código:**
+```json
+// package.json - linhas 6-14
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "test": "vitest",
+  "preview": "vite preview"
+}
+```
+[📁 Ver arquivo completo](./package.json)
 
 ### 2. **O que é React**
 **React** é uma biblioteca JavaScript para construção de interfaces de usuário baseada em componentes reutilizáveis e estado reativo.
@@ -65,22 +77,45 @@ Este projeto foi desenvolvido especificamente para demonstrar os seguintes conce
 - **Estado**: gerenciamento de dados dinâmicos com hooks
 - **Eventos**: manipulação de interações do usuário
 
-**Exemplos práticos:**
+**Exemplos práticos no código:**
+
+**1. Componente principal da aplicação:**
 ```javascript
-// Componente funcional React
-function Button({ children, onClick, variant = 'primary' }) {
+// src/App.jsx - linhas 15-25
+function App() {
   return (
-    <button onClick={onClick} className={variantClasses[variant]}>
-      {children}
-    </button>
+    <BrowserRouter>
+      <AuthProvider>
+        <div className="min-h-screen bg-gray-50">
+          <Routes />
+        </div>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
-
-// Uso em JSX
-<Button onClick={handleSubmit} variant="primary">
-  Salvar
-</Button>
 ```
+[📁 Ver arquivo completo](./src/App.jsx)
+
+**2. Componente Button reutilizável:**
+```javascript
+// src/components/Button.jsx - linhas 25-45
+function Button({ 
+  as: Component = 'button',
+  variant = 'primary', 
+  size = 'md',
+  children, 
+  onClick,
+  ...props 
+}) {
+  const baseClasses = 'btn';
+  const variantClasses = {
+    primary: 'btn-primary',
+    secondary: 'btn-secondary'
+  };
+  // ...
+}
+```
+[📁 Ver arquivo completo](./src/components/Button.jsx)
 
 ### 3. **O que é DOM e Virtual DOM**
 **DOM (Document Object Model)** é a representação em árvore dos elementos HTML de uma página web que o browser cria na memória.
@@ -101,180 +136,435 @@ function Button({ children, onClick, variant = 'primary' }) {
 #### **Componentes SEM Estado** (Stateless/Presentational)
 Recebem dados via props e apenas renderizam UI:
 
+**1. Button - Componente de UI puro:**
 ```javascript
-// components/Button.jsx - SEM ESTADO
-function Button({ children, onClick, variant }) {
+// src/components/Button.jsx - linhas 25-50
+function Button({ 
+  as: Component = 'button',
+  variant = 'primary', 
+  size = 'md',
+  children, 
+  onClick,
+  ...props 
+}) {
+  const baseClasses = 'btn';
+  const variantClasses = {
+    primary: 'btn-primary',
+    secondary: 'btn-secondary'
+  };
   return (
-    <button onClick={onClick} className={getVariantClass(variant)}>
+    <Component onClick={onClick} className={combinedClasses}>
       {children}
-    </button>
+    </Component>
   );
 }
+```
+[📁 Ver arquivo completo](./src/components/Button.jsx)
 
-// components/Header.jsx - SEM ESTADO  
-function Header() {
-  const { user, logout } = useAuth(); // apenas consome dados
-  return <nav>...</nav>; // apenas renderiza
-}
-
-// components/EmptyState.jsx - SEM ESTADO
-function EmptyState({ title, description, icon }) {
-  return <div>...</div>; // apenas apresenta dados
+**2. App - Componente estrutural:**
+```javascript
+// src/App.jsx - linhas 15-25
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <div className="min-h-screen bg-gray-50">
+          <Routes />
+        </div>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 ```
+[📁 Ver arquivo completo](./src/App.jsx)
+
+**3. ProtectedRoute - HOC sem estado:**
+```javascript
+// src/features/auth/ProtectedRoute.jsx - linhas 15-30
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth(); // apenas consome dados
+  
+  if (loading) {
+    return <div>Verificando autenticação...</div>;
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children; // apenas renderiza
+}
+```
+[📁 Ver arquivo completo](./src/features/auth/ProtectedRoute.jsx)
 
 #### **Componentes COM Estado** (Stateful/Container)
 Gerenciam dados e lógica de negócio:
 
+**1. TasksPage - Página principal com múltiplos estados:**
 ```javascript
-// features/tasks/TasksPage.jsx - COM ESTADO
+// src/features/tasks/TasksPage.jsx - linhas 35-45
 function TasksPage() {
-  const [tasks, setTasks] = useState([]); // gerencia estado
+  const { user } = useAuth(); // useContext
+  
+  // useState: controle do estado das tarefas
+  const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isFormVisible, setIsFormVisible] = useState(false);
   
-  const handleCreateTask = (taskData) => { // lógica de negócio
-    setTasks(prev => [newTask, ...prev]);
-  };
+  // useRef: referência para o campo de busca
+  const searchInputRef = useRef(null);
   
-  return <div>...</div>; // renderiza + gerencia dados
-}
-
-// features/auth/LoginPage.jsx - COM ESTADO
-function LoginPage() {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  
-  const handleSubmit = async (e) => { // processa formulário
-    // validação e envio
+  // Lógica de negócio
+  const handleAddTask = (taskData) => {
+    const newTask = createTask(taskData.title, taskData.description);
+    setTasks(prevTasks => [...prevTasks, newTask]);
   };
 }
 ```
+[📁 Ver arquivo completo](./src/features/tasks/TasksPage.jsx)
+
+**2. TaskForm - Formulário controlado:**
+```javascript
+// src/features/tasks/TaskForm.jsx - linhas 25-40
+function TaskForm({ onSubmit, onCancel, initialData = null }) {
+  // useState: controla os dados do formulário
+  const [formData, setFormData] = useState({
+    title: initialData?.title || '',
+    description: initialData?.description || ''
+  });
+  
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // useRef: referência para foco automático
+  const titleInputRef = useRef(null);
+}
+```
+[📁 Ver arquivo completo](./src/features/tasks/TaskForm.jsx)
+
+**3. LoginPage - Autenticação com estado:**
+```javascript
+// src/features/auth/LoginPage.jsx - linhas 20-35
+function LoginPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  
+  // useState: controla os dados do formulário
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+}
+```
+[📁 Ver arquivo completo](./src/features/auth/LoginPage.jsx)
 
 ### 5. **Listas em React**
 Renderização de arrays de dados com performance otimizada:
 
+**Implementação no TasksPage:**
 ```javascript
-// features/tasks/TasksPage.jsx
-{filteredTasks.map(task => (
-  <TaskItem
-    key={task.id} // Chave única e estável para performance
-    task={task}
-    onToggle={handleToggleTask}
-    onEdit={handleEditTask}
-    onDelete={handleDeleteTask}
+// src/features/tasks/TasksPage.jsx - linhas 275-285
+{filteredTasks.length > 0 ? (
+  // Lista de tarefas quando há itens
+  filteredTasks.map(task => (
+    <TaskItem
+      key={task.id} // Chave única e estável para performance
+      task={task}
+      onToggle={handleToggleTask}
+      onEdit={handleEditTask}
+      onDelete={handleDeleteTask}
+    />
+  ))
+) : (
+  // Estado vazio quando não há tarefas
+  <EmptyState
+    title={getEmptyStateTitle(searchTerm, filter)}
+    description={getEmptyStateDescription(searchTerm, tasks)}
   />
-))}
+)}
 ```
+[📁 Ver arquivo completo](./src/features/tasks/TasksPage.jsx#L275-L285)
+
+**Filtragem otimizada com useMemo:**
+```javascript
+// src/features/tasks/TasksPage.jsx - linhas 85-90
+// useMemo: otimização de performance para lista filtrada
+const filteredTasks = useMemo(() => {
+  return filterTasks(tasks, filter, searchTerm);
+}, [tasks, filter, searchTerm]);
+```
+[📁 Ver arquivo completo](./src/features/tasks/TasksPage.jsx#L85-L90)
 
 **Conceitos aplicados:**
 - **Keys únicas**: `key={task.id}` para otimização de re-renderização
 - **Mapeamento**: transformação de dados em elementos JSX
 - **Filtragem**: `filteredTasks` baseado em critérios dinâmicos
 - **Performance**: React reutiliza elementos com keys estáveis
+- **useMemo**: evita recálculo desnecessário da lista filtrada
 
 ### 6. **Formulários Controlados**
 Inputs sincronizados com estado React:
 
+**1. Formulário de Login:**
 ```javascript
-// features/auth/LoginPage.jsx
-const [formData, setFormData] = useState({ email: '', password: '' });
+// src/features/auth/LoginPage.jsx - linhas 25-45
+const [formData, setFormData] = useState({
+  email: '',
+  password: ''
+});
 
 const handleChange = (e) => {
   const { name, value } = e.target;
-  setFormData(prev => ({ ...prev, [name]: value }));
+  setFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+  // Limpa erro quando usuário começa a digitar
+  if (error) setError('');
 };
 
-<input
+<Input
   name="email"
+  type="email"
   value={formData.email} // controlado pelo estado
   onChange={handleChange} // atualiza estado
+  required
 />
 ```
+[📁 Ver arquivo completo](./src/features/auth/LoginPage.jsx#L25-L45)
+
+**2. Formulário de Tarefa com validação:**
+```javascript
+// src/features/tasks/TaskForm.jsx - linhas 50-70
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+
+  // Remove erro do campo quando usuário começa a digitar
+  if (errors[name]) {
+    setErrors(prev => ({
+      ...prev,
+      [name]: ''
+    }));
+  }
+};
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  // Valida dados usando função utilitária
+  const validation = validateTask(formData);
+  if (!validation.isValid) {
+    setErrors(validation.errors);
+    return;
+  }
+};
+```
+[📁 Ver arquivo completo](./src/features/tasks/TaskForm.jsx#L50-L70)
 
 **Características demonstradas:**
 - **Single source of truth**: estado como única fonte de dados
 - **Validação em tempo real**: feedback imediato
 - **Prevenção de submissão inválida**: botões desabilitados
 - **Acessibilidade**: labels, aria-* attributes
+- **Limpeza de erros**: remove erros quando usuário digita
 
 ### 7. **Navegação Autenticada**
 Sistema de rotas protegidas com React Router:
 
+**1. Configuração de rotas:**
 ```javascript
-// app/routes.jsx
-<Route 
-  path="/tasks" 
-  element={
-    <ProtectedRoute> {/* HOC que verifica autenticação */}
-      <TasksPage />
-    </ProtectedRoute>
-  } 
-/>
+// src/app/routes.jsx - linhas 30-65
+return (
+  <RouterRoutes>
+    {/* Rota raiz - redireciona baseado na autenticação */}
+    <Route 
+      path="/" 
+      element={
+        user ? <Navigate to="/tasks" replace /> : <Navigate to="/login" replace />
+      } 
+    />
+    
+    {/* Rotas públicas - apenas para usuários não autenticados */}
+    <Route 
+      path="/login" 
+      element={!user ? <LoginPage /> : <Navigate to="/tasks" replace />} 
+    />
+    <Route 
+      path="/register" 
+      element={!user ? <RegisterPage /> : <Navigate to="/tasks" replace />} 
+    />
+    
+    {/* Rotas protegidas - apenas para usuários autenticados */}
+    <Route 
+      path="/tasks" 
+      element={
+        <ProtectedRoute>
+          <TasksPage />
+        </ProtectedRoute>
+      } 
+    />
+  </RouterRoutes>
+);
+```
+[📁 Ver arquivo completo](./src/app/routes.jsx#L30-L65)
 
-// features/auth/ProtectedRoute.jsx
+**2. Componente ProtectedRoute:**
+```javascript
+// src/features/auth/ProtectedRoute.jsx - linhas 15-35
 function ProtectedRoute({ children }) {
-  const { user } = useAuth(); // verifica contexto
+  const { user, loading } = useAuth(); // verifica contexto
   
-  if (!user) {
-    return <Navigate to="/login" replace />; // redireciona se não autenticado
+  // Exibe loading enquanto verifica autenticação
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg text-gray-600">Verificando autenticação...</div>
+      </div>
+    );
   }
   
-  return children; // renderiza componente protegido
+  // Redireciona para login se não estiver autenticado
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Renderiza componente filho se autenticado
+  return children;
 }
 ```
+[📁 Ver arquivo completo](./src/features/auth/ProtectedRoute.jsx#L15-L35)
+
+**3. Context de autenticação:**
+```javascript
+// src/context/AuthContext.jsx - linhas 25-35
+const [user, setUser] = useState(null);
+const [loading, setLoading] = useState(true);
+
+// useEffect: carrega dados de autenticação do localStorage
+useEffect(() => {
+  const savedUser = localStorage.getItem('user');
+  if (savedUser) {
+    setUser(JSON.parse(savedUser));
+  }
+  setLoading(false);
+}, []);
+```
+[📁 Ver arquivo completo](./src/context/AuthContext.jsx#L25-L35)
 
 **Funcionalidades implementadas:**
 - **Rotas públicas**: `/login`, `/register` (apenas não autenticados)
 - **Rotas protegidas**: `/tasks` (apenas autenticados)
 - **Redirecionamentos automáticos**: baseados no estado de autenticação
 - **Persistência**: sessão mantida no localStorage
+- **Loading states**: feedback visual durante verificação
 
 ### 8. **Os 5 Hooks Obrigatórios**
 
 #### **useState** - Estado Local
+
+**1. TasksPage - Múltiplos estados:**
 ```javascript
-// features/tasks/TasksPage.jsx
+// src/features/tasks/TasksPage.jsx - linhas 37-42
 const [tasks, setTasks] = useState([]); // lista de tarefas
 const [filter, setFilter] = useState('all'); // filtro ativo
 const [searchTerm, setSearchTerm] = useState(''); // termo de busca
+const [isFormVisible, setIsFormVisible] = useState(false); // controle do formulário
+```
+[📁 Ver arquivo completo](./src/features/tasks/TasksPage.jsx#L37-L42)
 
-// features/auth/LoginPage.jsx  
-const [formData, setFormData] = useState({ email: '', password: '' });
+**2. LoginPage - Estado de formulário:**
+```javascript
+// src/features/auth/LoginPage.jsx - linhas 25-30
+const [formData, setFormData] = useState({
+  email: '',
+  password: ''
+});
 const [error, setError] = useState('');
 const [loading, setLoading] = useState(false);
 ```
+[📁 Ver arquivo completo](./src/features/auth/LoginPage.jsx#L25-L30)
+
+**3. TaskForm - Estado com validação:**
+```javascript
+// src/features/tasks/TaskForm.jsx - linhas 27-35
+const [formData, setFormData] = useState({
+  title: initialData?.title || '',
+  description: initialData?.description || ''
+});
+const [errors, setErrors] = useState({});
+const [isSubmitting, setIsSubmitting] = useState(false);
+```
+[📁 Ver arquivo completo](./src/features/tasks/TaskForm.jsx#L27-L35)
 
 #### **useEffect** - Efeitos Colaterais
+
+**1. TasksPage - Carregamento e salvamento:**
 ```javascript
-// features/tasks/TasksPage.jsx
-
-// Carrega tarefas do localStorage na inicialização
+// src/features/tasks/TasksPage.jsx - linhas 45-55
+// Carrega tarefas do localStorage na montagem
 useEffect(() => {
-  const savedTasks = localStorage.getItem(`tasks_${user.id}`);
+  const savedTasks = localStorage.getItem('tasks');
   if (savedTasks) {
-    setTasks(JSON.parse(savedTasks));
+    try {
+      setTasks(JSON.parse(savedTasks));
+    } catch (error) {
+      console.error('Erro ao carregar tarefas:', error);
+    }
   }
-}, [user.id]);
+}, []); // executa apenas na montagem
 
-// Salva tarefas no localStorage quando há mudanças
+// Salva tarefas no localStorage quando a lista muda
 useEffect(() => {
-  localStorage.setItem(`tasks_${user.id}`, JSON.stringify(tasks));
-}, [tasks, user.id]);
-
-// Atualiza título da página baseado nas estatísticas
-useEffect(() => {
-  const stats = calculateTaskStats(tasks);
-  document.title = `Todo App - ${stats.pending} pendente(s)`;
-  
-  return () => { // cleanup
-    document.title = 'Todo App';
-  };
-}, [tasks]);
+  if (tasks.length > 0) {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+}, [tasks]); // executa quando tasks muda
 ```
+[📁 Ver arquivo completo](./src/features/tasks/TasksPage.jsx#L45-L55)
+
+**2. AuthContext - Autenticação persistente:**
+```javascript
+// src/context/AuthContext.jsx - linhas 30-40
+// Carrega dados de autenticação do localStorage
+useEffect(() => {
+  const savedUser = localStorage.getItem('user');
+  if (savedUser) {
+    try {
+      setUser(JSON.parse(savedUser));
+    } catch (error) {
+      console.error('Erro ao carregar usuário:', error);
+    }
+  }
+  setLoading(false);
+}, []); // executa apenas na montagem
+```
+[📁 Ver arquivo completo](./src/context/AuthContext.jsx#L30-L40)
+
+**3. TaskForm - Foco automático:**
+```javascript
+// src/features/tasks/TaskForm.jsx - linhas 40-45
+// Foca no campo de título quando o formulário é montado
+useEffect(() => {
+  if (titleRef.current) {
+    titleRef.current.focus();
+  }
+}, []); // executa apenas na montagem
+```
+[📁 Ver arquivo completo](./src/features/tasks/TaskForm.jsx#L40-L45)
 
 #### **useContext** - Compartilhamento de Estado
+
+**1. Criação do Context e hook customizado:**
 ```javascript
-// context/AuthContext.jsx
+// src/context/AuthContext.jsx - linhas 10-20
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -284,62 +574,188 @@ export const useAuth = () => {
   }
   return context;
 };
+```
+[📁 Ver arquivo completo](./src/context/AuthContext.jsx#L10-L20)
 
-// Usado em qualquer componente:
-// features/tasks/TasksPage.jsx
+**2. TasksPage - Acesso ao contexto:**
+```javascript
+// src/features/tasks/TasksPage.jsx - linhas 35-40
 function TasksPage() {
   const { user } = useAuth(); // acessa contexto de autenticação
+  
+  const [tasks, setTasks] = useState([]);
+  const [filter, setFilter] = useState('all');
   // ...
 }
 ```
+[📁 Ver arquivo completo](./src/features/tasks/TasksPage.jsx#L35-L40)
+
+**3. LoginPage - Uso das funções do contexto:**
+```javascript
+// src/features/auth/LoginPage.jsx - linhas 20-30
+function LoginPage() {
+  const { login } = useAuth(); // acessa função de login
+  const navigate = useNavigate();
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await login(formData.email, formData.password);
+      navigate('/tasks');
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+}
+```
+[📁 Ver arquivo completo](./src/features/auth/LoginPage.jsx#L20-L30)
+
+**4. ProtectedRoute - Verificação de autenticação:**
+```javascript
+// src/features/auth/ProtectedRoute.jsx - linhas 15-25
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth(); // verifica estado de autenticação
+  
+  if (loading) {
+    return <div>Verificando autenticação...</div>;
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+}
+```
+[📁 Ver arquivo completo](./src/features/auth/ProtectedRoute.jsx#L15-L25)
 
 #### **useRef** - Referências DOM
-```javascript
-// features/tasks/TaskForm.jsx
-const titleInputRef = useRef(null);
 
-// Foca automaticamente no campo título
+**1. TaskForm - Foco automático em campos:**
+```javascript
+// src/features/tasks/TaskForm.jsx - linhas 30-35
+const titleRef = useRef(null);
+const descriptionRef = useRef(null);
+
+// Foca automaticamente no campo título quando o formulário é montado
 useEffect(() => {
-  if (titleInputRef.current) {
-    titleInputRef.current.focus();
+  if (titleRef.current) {
+    titleRef.current.focus();
   }
 }, []);
+```
+[📁 Ver arquivo completo](./src/features/tasks/TaskForm.jsx#L30-L35)
 
+**2. TaskForm - Aplicação da ref no JSX:**
+```javascript
+// src/features/tasks/TaskForm.jsx - linhas 80-95
 <input
-  ref={titleInputRef} // referência direta ao elemento DOM
-  name="title"
-  // ...
+  ref={titleRef}
+  type="text"
+  value={formData.title}
+  onChange={(e) => setFormData({...formData, title: e.target.value})}
+  placeholder="Título da tarefa"
+  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  required
 />
 
-// features/tasks/TasksPage.jsx
-const searchInputRef = useRef(null);
+<textarea
+  ref={descriptionRef}
+  value={formData.description}
+  onChange={(e) => setFormData({...formData, description: e.target.value})}
+  placeholder="Descrição da tarefa (opcional)"
+  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  rows={3}
+/>
+```
+[📁 Ver arquivo completo](./src/features/tasks/TaskForm.jsx#L80-L95)
 
-const focusSearch = () => {
-  if (searchInputRef.current) {
-    searchInputRef.current.focus(); // manipulação direta do DOM
+**3. TasksPage - Ref para campo de busca:**
+```javascript
+// src/features/tasks/TasksPage.jsx - linhas 40-45
+const searchRef = useRef(null);
+
+// Função para limpar busca e focar no campo
+const clearSearch = () => {
+  setSearchTerm('');
+  if (searchRef.current) {
+    searchRef.current.focus();
   }
 };
 ```
+[📁 Ver arquivo completo](./src/features/tasks/TasksPage.jsx#L40-L45)
 
 #### **useMemo** - Memoização e Performance
+
+**1. TasksPage - Filtragem otimizada de tarefas:**
 ```javascript
-// features/tasks/TasksPage.jsx
-
-// Memoiza lista filtrada para evitar recálculo desnecessário
+// src/features/tasks/TasksPage.jsx - linhas 85-100
 const filteredTasks = useMemo(() => {
-  return filterTasks(tasks, filter, searchTerm);
+  return tasks.filter(task => {
+    // Filtro por status (all, completed, pending)
+    const matchesFilter = filter === 'all' || 
+                         (filter === 'completed' && task.completed) ||
+                         (filter === 'pending' && !task.completed);
+    
+    // Filtro por termo de busca no título e descrição
+    const matchesSearch = searchTerm === '' || 
+                         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         task.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesFilter && matchesSearch;
+  });
 }, [tasks, filter, searchTerm]); // recalcula apenas quando dependências mudam
-
-// Memoiza estatísticas para evitar recálculo desnecessário  
-const taskStats = useMemo(() => {
-  return calculateTaskStats(tasks);
-}, [tasks]); // recalcula apenas quando tasks muda
 ```
+[📁 Ver arquivo completo](./src/features/tasks/TasksPage.jsx#L85-L100)
+
+**2. TasksPage - Estatísticas calculadas:**
+```javascript
+// src/features/tasks/TasksPage.jsx - linhas 102-115
+const taskStats = useMemo(() => {
+  const total = tasks.length;
+  const completed = tasks.filter(task => task.completed).length;
+  const pending = total - completed;
+  const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+  
+  return {
+    total,
+    completed,
+    pending,
+    completionRate
+  };
+}, [tasks]); // otimiza cálculo de estatísticas complexas
+```
+[📁 Ver arquivo completo](./src/features/tasks/TasksPage.jsx#L102-L115)
+
+**3. AuthContext - Valor do contexto memoizado:**
+```javascript
+// src/context/AuthContext.jsx - linhas 70-80
+const value = useMemo(() => ({
+  user,
+  loading,
+  login,
+  logout,
+  register
+}), [user, loading]); // evita re-renderizações desnecessárias dos consumidores
+
+return (
+  <AuthContext.Provider value={value}>
+    {children}
+  </AuthContext.Provider>
+);
+```
+[📁 Ver arquivo completo](./src/context/AuthContext.jsx#L70-L80)
 
 **Benefícios de performance:**
 - Evita recálculos desnecessários em cada render
 - Melhora performance com listas grandes
 - Reduz trabalho computacional
+- Previne re-renderizações em cascata nos consumidores de contexto
 
 ---
 
